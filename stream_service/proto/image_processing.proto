@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option go_package = "grpc/ImageProcessing";
+
+service ImageProcessing {
+  rpc ProcessImage (ImageRequest) returns (ImageResponse);
+}
+
+message ImageRequest {
+  bytes image_data = 1;
+}
+
+message ImageResponse {
+  string status = 1;
+  string result = 2;
+}
