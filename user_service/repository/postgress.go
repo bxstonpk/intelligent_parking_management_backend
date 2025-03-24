@@ -48,43 +48,53 @@ func (r postgresUserRepository) RegisterUser(user User) (int, error) {
 }
 
 func (r postgresUserRepository) UpdateUserInfo(user User) (*User, error) {
-	UpdateUser := User{}
+	UserResponse := User{}
 	query := "UPDATE users SET user_fullname = $1, user_birthday = $2, user_gender = $3, update_at = $4 WHERE id = $5"
-	err := r.db.Get(&UpdateUser, query, user.UserFullname, user.UserBirthday, user.UserGender, user.UpdateAt, user.ID)
+	err := r.db.Get(&UserResponse, query, user.UserFullname, user.UserBirthday, user.UserGender, user.UpdateAt, user.ID)
 	if err != nil {
 		return nil, err
 	}
-	return &UpdateUser, nil
+	return &UserResponse, nil
 }
 
 func (r postgresUserRepository) UpdateUserPassword(user User) (*User, error) {
-	UpdateUser := User{}
+	UserResponse := User{}
 	query := "UPDATE users SET password = $1, update_at = $2 WHERE id = $3"
-	err := r.db.Get(&UpdateUser, query, user.Password, user.UpdateAt, user.ID)
+	err := r.db.Get(&UserResponse, query, user.Password, user.UpdateAt, user.ID)
 	if err != nil {
 		return nil, err
 	}
-	return &UpdateUser, nil
+	return &UserResponse, nil
 }
 
 func (r postgresUserRepository) UpdateUserEmail(user User) (*User, error) {
-	Updateuser := User{}
+	UserResponse := User{}
 	query := "UPDATE users SET email = $1, update_at = $2 WHERE id = $3"
-	err := r.db.Get(&Updateuser, query, user.Email, user.UpdateAt, user.ID)
+	err := r.db.Get(&UserResponse, query, user.Email, user.UpdateAt, user.ID)
 	if err != nil {
 		return nil, err
 	}
-	return &Updateuser, nil
+	return &UserResponse, nil
 }
 
 func (r postgresUserRepository) UpdateUserUsername(user User) (*User, error) {
-	UpdateUser := User{}
+	UserResponse := User{}
 	query := "UPDATE users SET username = $1, update_at = $2 WHERE id = $3"
-	err := r.db.Get(&UpdateUser, query, user.Username, user.UpdateAt, user.ID)
+	err := r.db.Get(&UserResponse, query, user.Username, user.UpdateAt, user.ID)
 	if err != nil {
 		return nil, err
 	}
-	return &UpdateUser, nil
+	return &UserResponse, nil
+}
+
+func (r postgresUserRepository) UpdateUserProfile(user User) (*User, error) {
+	UserResponse := User{}
+	query := "UPDATE users SET user_profile = $1, update_at = $2 WHERE id = $3"
+	err := r.db.Get(&UserResponse, query, user.UserProfile, user.UpdateAt, user.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &UserResponse, nil
 }
 
 func (r postgresUserRepository) DeleteUser(id int) (int, error) {

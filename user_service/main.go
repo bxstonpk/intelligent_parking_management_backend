@@ -1,9 +1,13 @@
 package main
 
 import (
-	"fmt"
+	_ "fmt"
+	"net/http"
+	"user_services/handler"
 	repository "user_services/repository"
+	"user_services/service"
 
+	"github.com/gorilla/mux"
 	_ "github.com/gorilla/mux"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
@@ -16,21 +20,15 @@ func main() {
 		panic(err)
 	}
 
-	// Create Router
-	/* r := mux.NewRouter() */
-
 	// Create User Repository
 	userRepository := repository.NewPostgresUserRepository(db)
+	userService := service.NewUserService(userRepository)
+	userHandler := handler.NewUserHandler(userService)
 
-	_ = userRepository
+	// Create Router
+	router := mux.NewRouter()
 
-	/* // Create Route Handler for get users
-	r.HandleFunc("/user/{id}", func(w http.ResponseWriter, r *http.Request) { */
+	router.HandleFunc("/login", userHandler.LoginUser).Methods(http.MethodGet)
 
-	user, err := userRepository.LoginUser("sconklin0", "$2a$04$BLkZ7c2Ft6DoxpGU4ZyncezlG8ma/SrX5DPoAe8M2HRrRrUP2Wpq2")
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(user)
+	http.ListenAndServe(":8081", router)
 }
