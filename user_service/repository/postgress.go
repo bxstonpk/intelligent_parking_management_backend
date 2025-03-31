@@ -16,7 +16,7 @@ func NewPostgresUserRepository(db *sqlx.DB) postgresUserRepository {
 func (r postgresUserRepository) LoginUser(email_username string, pasword string) (*User, error) {
 	// Check user login without password hashing
 	user := User{}
-	query := "SELECT * FROM users WHERE (email = $1 OR username = $1) AND password = $2"
+	query := "SELECT * FROM users WHERE (email = $1 OR username = $1) AND password = $2 AND is_delete = 0"
 	err := r.db.Get(&user, query, email_username, pasword)
 	if err != nil {
 		return nil, err
@@ -35,21 +35,17 @@ func (r postgresUserRepository) GetUser(id int) (*User, error) {
 }
 
 func (r postgresUserRepository) RegisterUser(user User) (int, error) {
-	query := "INSERT INTO users (email, password, username, user_fullname, user_birthday, user_gender, create_at) VALUES ($1, $2, $3, $4, $5, $6, $7)"
-	result, err := r.db.Exec(query, user.Email, user.Password, user.Username, user.UserFullname, user.UserBirthday, user.UserGender, user.CreateAt)
+	query := "INSERT INTO users (email, password, username, user_fullname, user_birthday, user_gender, create_at, user_profile) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) "
+	_, err := r.db.Exec(query, user.Email, user.Password, user.Username, user.UserFullname, user.UserBirthday, user.UserGender, user.CreateAt, user.UserProfile)
 	if err != nil {
 		return 0, err
 	}
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return 0, err
-	}
-	return int(rowsAffected), nil
+	return 1, nil
 }
 
 func (r postgresUserRepository) UpdateUserInfo(user User) (*User, error) {
 	UserResponse := User{}
-	query := "UPDATE users SET user_fullname = $1, user_birthday = $2, user_gender = $3, update_at = $4 WHERE id = $5"
+	query := "UPDATE users SET user_fullname = $1, user_birthday = $2, user_gender = $3, update_at = $4 WHERE id = $5 RETURNING *"
 	err := r.db.Get(&UserResponse, query, user.UserFullname, user.UserBirthday, user.UserGender, user.UpdateAt, user.ID)
 	if err != nil {
 		return nil, err
@@ -59,7 +55,7 @@ func (r postgresUserRepository) UpdateUserInfo(user User) (*User, error) {
 
 func (r postgresUserRepository) UpdateUserPassword(user User) (*User, error) {
 	UserResponse := User{}
-	query := "UPDATE users SET password = $1, update_at = $2 WHERE id = $3"
+	query := "UPDATE users SET password = $1, update_at = $2 WHERE id = $3 RETURNING *"
 	err := r.db.Get(&UserResponse, query, user.Password, user.UpdateAt, user.ID)
 	if err != nil {
 		return nil, err
@@ -69,7 +65,7 @@ func (r postgresUserRepository) UpdateUserPassword(user User) (*User, error) {
 
 func (r postgresUserRepository) UpdateUserEmail(user User) (*User, error) {
 	UserResponse := User{}
-	query := "UPDATE users SET email = $1, update_at = $2 WHERE id = $3"
+	query := "UPDATE users SET email = $1, update_at = $2 WHERE id = $3 RETURNING *"
 	err := r.db.Get(&UserResponse, query, user.Email, user.UpdateAt, user.ID)
 	if err != nil {
 		return nil, err
@@ -79,7 +75,7 @@ func (r postgresUserRepository) UpdateUserEmail(user User) (*User, error) {
 
 func (r postgresUserRepository) UpdateUserUsername(user User) (*User, error) {
 	UserResponse := User{}
-	query := "UPDATE users SET username = $1, update_at = $2 WHERE id = $3"
+	query := "UPDATE users SET username = $1, update_at = $2 WHERE id = $3 RETURNING *"
 	err := r.db.Get(&UserResponse, query, user.Username, user.UpdateAt, user.ID)
 	if err != nil {
 		return nil, err
@@ -89,7 +85,7 @@ func (r postgresUserRepository) UpdateUserUsername(user User) (*User, error) {
 
 func (r postgresUserRepository) UpdateUserProfile(user User) (*User, error) {
 	UserResponse := User{}
-	query := "UPDATE users SET user_profile = $1, update_at = $2 WHERE id = $3"
+	query := "UPDATE users SET user_profile = $1, update_at = $2 WHERE id = $3 RETURNING *"
 	err := r.db.Get(&UserResponse, query, user.UserProfile, user.UpdateAt, user.ID)
 	if err != nil {
 		return nil, err
