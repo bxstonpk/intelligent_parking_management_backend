@@ -6,8 +6,9 @@ import (
 
 type userHandler struct {
 	userService service.UserService
+	secretKey   string
 }
 
-func NewUserHandler(userService service.UserService) userHandler {
-	return userHandler{userService: userService}
+func NewUserHandler(userService service.UserService, secretKey string) userHandler {
+	return userHandler{userService: userService, secretKey: secretKey}
 }

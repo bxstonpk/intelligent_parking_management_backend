@@ -11,16 +11,16 @@ type User struct {
 	CreateAt     string `db:"create_at"`
 	UpdateAt     string `db:"update_at"`
 	DeleteAt     string `db:"delete_at"`
-	IsDelete     int    `db:"is_delete"`
+	IsDelete     string `db:"is_delete"`
 	UserProfile  []byte `db:"user_profile"`
 }
 
 type UserRepository interface {
 	LoginUser(string, string) (*User, error)
 	GetUser(int) (*User, error)
-	RegisterUser(User) (int, error)
-	UpdateUserInfo(User) (*User, error)
-	UpdateUserPassword(User) (*User, error)
+	RegisterUser(*User) (int, error)
+	UpdateUserInfo(*User) (*User, error)
+	UpdateUserPassword(*User) (*User, error)
 	UpdateUserEmail(User) (*User, error)
 	UpdateUserUsername(User) (*User, error)
 	UpdateUserProfile(User) (*User, error)

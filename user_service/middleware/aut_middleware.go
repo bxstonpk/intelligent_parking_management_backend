@@ -10,13 +10,16 @@ import (
 )
 
 type authMiddleware struct {
-	authService security.PasswordHasherRepository
-	secretKey   string
+	secretKey string
 }
 
-func NewAuthMiddleware(authService security.PasswordHasherRepository, secretKey string) authMiddleware {
-	return authMiddleware{authService: authService, secretKey: secretKey}
+func NewAuthMiddleware(secretKey string) authMiddleware {
+	return authMiddleware{secretKey: secretKey}
 }
+
+type contextKey string
+
+const userIDKey contextKey = contextKey("userID")
 
 func (m *authMiddleware) JWTAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -27,16 +30,15 @@ func (m *authMiddleware) JWTAuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		tokenString = strings.TrimPrefix(tokenString, "Bearer ")
-		token, err := m.authService.ValidateToken(tokenString)
+		token, err := security.NewBcryptHasher(m.secretKey).ValidateToken(tokenString)
 		if err != nil || !token.Valid {
 			http.Error(w, "Invalid token", http.StatusUnauthorized)
 			return
 		}
-
 		claims, _ := token.Claims.(jwt.MapClaims)
-		userID := claims["user_id"].(string)
+		userID, _ := claims["user_id"].(string)
 
-		ctx := context.WithValue(r.Context(), "userID", userID)
+		ctx := context.WithValue(r.Context(), userIDKey, userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

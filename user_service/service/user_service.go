@@ -8,6 +8,7 @@ import (
 	"user_services/repository"
 
 	"github.com/lib/pq"
+	"gorm.io/gorm"
 )
 
 type userService struct {
@@ -19,10 +20,22 @@ func NewUserService(userRepo repository.UserRepository) userService {
 }
 
 func (s userService) LoginUser(UserRegisterRequese *UserLoginRequese) (*UserResponse, error) {
+	// Check user
+	username := UserRegisterRequese.Username
+	log.Println(username)
+	if username == "" {
+		return nil, errors.New("username is empty")
+	}
+	password := UserRegisterRequese.Password
+	log.Println(password)
+	if password == "" {
+		return nil, errors.New("password is empty")
+	}
+
 	user, err := s.userRepo.LoginUser(UserRegisterRequese.Username, UserRegisterRequese.Password)
 	if err != nil {
 
-		if err == sql.ErrNoRows {
+		if err == gorm.ErrRecordNotFound {
 			return nil, errors.New("user not found")
 		}
 
@@ -78,7 +91,7 @@ func (s userService) RegisterUser(UserRegisterRequese UserRegisterRequese) (int,
 		UserProfile:  UserRegisterRequese.UserProfile,
 	}
 
-	status, err := s.userRepo.RegisterUser(user)
+	status, err := s.userRepo.RegisterUser(&user)
 	if err != nil {
 		log.Println(err)
 
@@ -101,7 +114,7 @@ func (s userService) UpdateUserInfo(UserUpdateInfoRequese UserUpdateInfoRequese)
 		UpdateAt:     time.Now().Format("2006-01-02 15:04:05"),
 	}
 
-	userResponse, err := s.userRepo.UpdateUserInfo(user)
+	userResponse, err := s.userRepo.UpdateUserInfo(&user)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -126,7 +139,7 @@ func (s userService) UpdateUserPassword(UserUpdatePasswordRequese UserUpdatePass
 		UpdateAt: time.Now().Format("2006-01-02 15:04:05"),
 	}
 
-	userResponse, err := s.userRepo.UpdateUserPassword(user)
+	userResponse, err := s.userRepo.UpdateUserPassword(&user)
 	if err != nil {
 		log.Println(err)
 		return nil, err

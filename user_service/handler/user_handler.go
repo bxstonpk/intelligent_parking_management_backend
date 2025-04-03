@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"user_services/security"
 	"user_services/service"
 
 	"github.com/gorilla/mux"
@@ -23,8 +24,19 @@ func (h userHandler) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Generate JWT token here if needed and add it to the response
+	token, err := security.NewBcryptHasher(h.secretKey).GenerateJWT(string(user.ID))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(user); err != nil {
+	response := map[string]interface{}{
+		"user":  user,
+		"token": token,
+	}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
