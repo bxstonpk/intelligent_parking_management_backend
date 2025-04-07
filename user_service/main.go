@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	_ "fmt"
 	"net/http"
 	"os"
 	"user_services/handler"
@@ -11,8 +10,6 @@ import (
 	"user_services/service"
 
 	"github.com/gorilla/mux"
-	_ "github.com/gorilla/mux"
-	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -61,7 +58,15 @@ func main() {
 	// Use middleware for protected routes
 	authMiddleware := middleware.NewAuthMiddleware(SecretKey)
 	protected.Use(authMiddleware.JWTAuthMiddleware)
+
+	// Define protected routes
 	protected.HandleFunc("/getuser/{userId:[0-9]+}", userHandler.GetUserHandler).Methods("GET")
+	protected.HandleFunc("/updateuser/{userId:[0-9]+}/info", userHandler.UpdateUserInfoHandler).Methods("PUT")
+	protected.HandleFunc("/updateuser/{userId:[0-9]+}/password", userHandler.UpdateUserPasswordHandler).Methods("PUT")
+	protected.HandleFunc("/updateuser/{userId:[0-9]+}/email", userHandler.UpdateUserEmailHandler).Methods("PUT")
+	protected.HandleFunc("/updateuser/{userId:[0-9]+}/username", userHandler.UpdateUserUsernameHandler).Methods("PUT")
+	protected.HandleFunc("/updateuser/{userId:[0-9]+}/profile", userHandler.UpdateUserProfileHandler).Methods("PUT")
+	protected.HandleFunc("/deleteuser/{userId:[0-9]+}", userHandler.DeleteUserHandler).Methods("DELETE")
 
 	http.ListenAndServe(":8081", router)
 }

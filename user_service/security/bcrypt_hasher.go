@@ -37,7 +37,7 @@ func (b bcryptHasher) CheckPasswordHash(password string, passwordHash string) bo
 func (s bcryptHasher) GenerateJWT(userID string) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id": userID,
-		"exp":     time.Now().Add(time.Hour * 168).Unix(),
+		"exp":     time.Now().Add(time.Hour * 24).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(secretKey)
