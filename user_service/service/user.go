@@ -2,51 +2,51 @@ package service
 
 // User struct for user login and info
 type UserLoginRequest struct {
-	Password string `db:"password" validate:"required"`
-	Username string `db:"username"`
-	Email    string `db:"email"`
+	Password string `validate:"required" json:"password"`
+	Username string `json:"username"`
+	Email    string `db:"email" json:"email"`
 }
 
 type UserRegisterRequest struct {
-	Email        string `db:"email" validate:"required,email"`
-	Password     string `db:"password" validate:"required"`
-	Username     string `db:"username" validate:"required"`
-	UserFullname string `db:"user_fullname" validate:"required"`
-	UserBirthday string `db:"user_birthday" validate:"required,datetime=2006-01-02"`
-	UserGender   int    `db:"user_gender" validate:"required,numeric,min=1,max=2"`
-	CreateAt     string `db:"create_at"`
-	UserProfile  string `db:"user_profile"`
+	Email        string `validate:"required,email" json:"email"`
+	Password     string `validate:"required" json:"password"`
+	Username     string `validate:"required" json:"username"`
+	UserFullname string `validate:"required" json:"user_fullname"`
+	UserBirthday string `validate:"required,datetime=2006-01-02" json:"user_birthday"`
+	UserGender   int    `validate:"required,numeric,min=1,max=2" json:"user_gender"`
+	CreateAt     string
+	UserProfile  string `json:"user_profile"`
 }
 
 type UserUpdateInfoRequest struct {
-	ID           int    `db:"id" validate:"required,numeric,min=1" json:"id"`
-	UserFullname string `db:"user_fullname" json:"user_fullname"`
-	UserBirthday string `db:"user_birthday" json:"user_birthday"`
-	UserGender   int    `db:"user_gender" json:"user_gender"`
+	ID           int    `validate:"required,numeric,min=1" json:"id"`
+	UserFullname string `json:"user_fullname"`
+	UserBirthday string `json:"user_birthday"`
+	UserGender   int    `json:"user_gender"`
 }
 
 type UserUpdatePasswordRequest struct {
-	ID       int    `db:"id" validate:"required,numeric,min=1"`
-	Password string `db:"password" validate:"required"`
+	ID       int    `validate:"required,numeric,min=1" json:"id"`
+	Password string `validate:"required" json:"password"`
 }
 
 type UserUpdateEmailRequest struct {
-	ID    int    `db:"id" validate:"required,numeric,min=1"`
-	Email string `db:"email" validate:"required,email"`
+	ID    int    `validate:"required,numeric,min=1" json:"id"`
+	Email string `validate:"required,email" json:"email"`
 }
 
 type UserUpdateUsernameRequest struct {
-	ID       int    `db:"id" validate:"required,numeric,min=1"`
-	Username string `db:"username" validate:"required"`
+	ID       int    `validate:"required,numeric,min=1" json:"id"`
+	Username string `validate:"required" json:"username"`
 }
 
 type UserUpdateProfileRequest struct {
-	ID          int    `db:"id" validate:"required,numeric,min=1"`
-	UserProfile string `db:"user_profile" validate:"required"`
+	ID          int    `validate:"required,numeric,min=1" json:"id"`
+	UserProfile string `validate:"required" json:"user_profile"`
 }
 
 type UserResponse struct {
-	ID           int    `db:"id"`
+	ID           int    `json:"id"`
 	Email        string `json:"email"`
 	Username     string `json:"username"`
 	UserFullname string `json:"user_fullname"`

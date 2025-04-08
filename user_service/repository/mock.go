@@ -2,7 +2,9 @@ package repository
 
 import (
 	"errors"
+	"os"
 	"time"
+	"user_services/security"
 )
 
 type mockUserRepo struct {
@@ -10,11 +12,14 @@ type mockUserRepo struct {
 }
 
 func NewMockUserRepo() mockUserRepo {
+	// hash password
+	password, _ := security.NewBcryptHasher(os.Getenv("SECRET_KEY")).HashPassword("12345678")
+
 	users := []Users{
 		{
 			ID:           1,
 			Email:        "test@test.com",
-			Password:     "1234",
+			Password:     password,
 			Username:     "test",
 			UserFullname: "Test User",
 			UserBirthday: "2000-01-01",
@@ -27,7 +32,7 @@ func NewMockUserRepo() mockUserRepo {
 		{
 			ID:           2,
 			Email:        "test2@test.com",
-			Password:     "1234",
+			Password:     password,
 			Username:     "test2",
 			UserFullname: "Test User 2",
 			UserBirthday: "2000-01-01",
@@ -44,7 +49,7 @@ func NewMockUserRepo() mockUserRepo {
 
 func (r mockUserRepo) LoginUser(username string, password string) (*Users, error) {
 	for _, user := range r.users {
-		if (user.Username == username || user.Email == username) && user.Password == password {
+		if user.Username == username || user.Email == username {
 			return &user, nil
 		}
 	}

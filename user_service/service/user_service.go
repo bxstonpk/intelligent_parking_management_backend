@@ -1,14 +1,16 @@
 package service
 
 import (
-	"database/sql"
 	"errors"
-	"log"
 	"net/mail"
+	"os"
+	"strings"
 	"time"
+	"user_services/errs"
+	"user_services/logs"
 	"user_services/repository"
+	"user_services/security"
 
-	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -25,12 +27,13 @@ func (s userService) LoginUser(UserRegisterRequest *UserLoginRequest) (*UserResp
 	username := UserRegisterRequest.Username
 	email := UserRegisterRequest.Email
 	if username == "" && email == "" {
-		return nil, errors.New("username or email is empty")
+		logs.Error("username or email is empty")
+		return nil, errs.NewBadRequestError("username or email is empty")
 	}
 	password := UserRegisterRequest.Password
-	log.Println(password)
 	if password == "" {
-		return nil, errors.New("password is empty")
+		logs.Error("password is empty")
+		return nil, errs.NewBadRequestError("password is empty")
 	}
 
 	// Check Empty email or usernaem
@@ -43,13 +46,19 @@ func (s userService) LoginUser(UserRegisterRequest *UserLoginRequest) (*UserResp
 
 	user, err := s.userRepo.LoginUser(userCheck, UserRegisterRequest.Password)
 	if err != nil {
+		logs.Error(err)
 
 		if err == gorm.ErrRecordNotFound {
-			return nil, errors.New("user not found")
+			return nil, errs.NewNotFoundError("user not found")
 		}
+		return nil, errs.NewUnexpectedError()
+	}
 
-		log.Println(err)
-		return nil, err
+	// Check password
+	secretKey := os.Getenv("SECRET_KEY")
+	if status := security.NewBcryptHasher(secretKey).CheckPasswordHash(UserRegisterRequest.Password, user.Password); !status {
+		logs.Error(err)
+		return nil, errs.NewBadRequestError("invalid password")
 	}
 
 	UserResponse := UserResponse{
@@ -68,12 +77,14 @@ func (s userService) LoginUser(UserRegisterRequest *UserLoginRequest) (*UserResp
 func (s userService) GetUser(id int) (*UserResponse, error) {
 	user, err := s.userRepo.GetUser(id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errors.New("user not found")
+		logs.Error(err)
+
+		if err == gorm.ErrRecordNotFound {
+			logs.Error(err)
+			return nil, errs.NewNotFoundError("user not found")
 		}
 
-		log.Println(err)
-		return nil, err
+		return nil, errs.NewUnexpectedError()
 	}
 
 	UserResponse := UserResponse{
@@ -102,45 +113,58 @@ func (s userService) RegisterUser(UserRegisterRequest UserRegisterRequest) (int,
 
 	// Validate email format
 	if _, err := mail.ParseAddress(user.Email); err != nil {
-		log.Println(err)
-		return 0, errors.New("invalid email format")
+		logs.Error(err)
+		return 0, errs.NewBadRequestError("invalid email format")
 	}
 	// Validate username format
 	if len(user.Username) < 3 || len(user.Username) > 20 {
-		log.Println("username length error")
-		return 0, errors.New("username must be between 3 and 20 characters")
+		logs.Error("username length error")
+		return 0, errs.NewBadRequestError("username must be between 5 and 20 characters")
 	}
 	// Validate password format
 	if len(user.Password) < 6 || len(user.Password) > 20 {
-		log.Println("password length error")
-		return 0, errors.New("password must be between 6 and 20 characters")
+		logs.Error("password length error")
+		return 0, errs.NewBadRequestError("password must be between 8 and 20 characters")
 	}
 	// Validate userfullname userbirtday usergender is not empty
 	if user.UserFullname == "" {
-		log.Println("userfullname is empty")
-		return 0, errors.New("userfullname is empty")
+		logs.Error("userfullname is empty")
+		return 0, errs.NewBadRequestError("userfullname is empty")
 	}
 	if user.UserBirthday == "" {
-		log.Println("userbirthday is empty")
-		return 0, errors.New("userbirthday is empty")
+		logs.Error("user birthday is empty")
+		return 0, errs.NewBadRequestError("user birthday is empty")
 	}
-	if user.UserGender == 1 || user.UserGender == 2 {
+	if user.UserProfile == nil {
+		logs.Error("user profile is empty")
+		return 0, errs.NewBadRequestError("user profile is empty")
+	}
+	if user.UserGender >= 0 || user.UserGender <= 2 {
 		// Valid gender
+		// 0 is female, 1 is male, 2 is other
 	} else {
-		log.Println("user gender is not valid")
-		return 0, errors.New("usergender is not valid")
+		logs.Error("user gender is not valid")
+		return 0, errs.NewBadRequestError("user gender is not valid")
 	}
+
+	// hash password
+	hashedPassword, err := security.NewBcryptHasher(os.Getenv("SECRET_KEY")).HashPassword(user.Password)
+	if err != nil {
+		logs.Error(err)
+		return 0, errs.NewUnexpectedError()
+	}
+	user.Password = hashedPassword
 
 	status, err := s.userRepo.RegisterUser(&user)
 	if err != nil {
-		log.Println(err)
+		logs.Error(err)
 
-		if pqErr, ok := err.(*pq.Error); ok {
-			if pqErr.Code == "23505" {
-				return 0, errors.New("username or email already exists")
-			}
+		if strings.Contains(err.Error(), "uni_users_email") {
+			logs.Error(err)
+			return 0, errs.NewConflictError("email or username already exists")
 		}
-		return 0, err
+
+		return 0, errs.NewUnexpectedError()
 	}
 	return status, nil
 }
@@ -154,10 +178,27 @@ func (s userService) UpdateUserInfo(UserUpdateInfoRequest UserUpdateInfoRequest)
 		UpdateAt:     time.Now().Format("2006-01-02 15:04:05"),
 	}
 
+	// Validate userfullname userbirtday usergender is not empty
+	if user.UserFullname == "" {
+		logs.Error("userfullname is empty")
+		return nil, errs.NewBadRequestError("userfullname is empty")
+	}
+	if user.UserBirthday == "" {
+		logs.Error("user birthday is empty")
+		return nil, errs.NewBadRequestError("user birthday is empty")
+	}
+	if user.UserGender >= 0 || user.UserGender <= 2 {
+		// Valid gender
+		// 0 is female, 1 is male, 2 is other
+	} else {
+		logs.Error("user gender is not valid")
+		return nil, errs.NewBadRequestError("user gender is not valid")
+	}
+
 	userResponse, err := s.userRepo.UpdateUserInfo(&user)
 	if err != nil {
-		log.Println(err)
-		return nil, err
+		logs.Error(err)
+		return nil, errs.NewBadRequestError("invalid user id")
 	}
 
 	UserResponse := UserResponse{
@@ -179,9 +220,23 @@ func (s userService) UpdateUserPassword(UserUpdatePasswordRequest UserUpdatePass
 		UpdateAt: time.Now().Format("2006-01-02 15:04:05"),
 	}
 
+	// Validate password format
+	if len(user.Password) < 6 || len(user.Password) > 20 {
+		logs.Error("password length error")
+		return nil, errs.NewBadRequestError("password must be between 8 and 20 characters")
+	}
+
+	// hash password
+	hashPassword, err := security.NewBcryptHasher(os.Getenv("SECRET_KEY")).HashPassword(user.Password)
+	if err != nil {
+		logs.Error(err)
+		return nil, errs.NewUnexpectedError()
+	}
+	user.Password = hashPassword
+
 	userResponse, err := s.userRepo.UpdateUserPassword(&user)
 	if err != nil {
-		log.Println(err)
+		logs.Error(err)
 		return nil, err
 	}
 
@@ -205,13 +260,13 @@ func (s userService) UpdateUserEmail(UserUpdateEmailRequest UserUpdateEmailReque
 
 	// Validate email format
 	if _, err := mail.ParseAddress(user.Email); err != nil {
-		log.Println(err)
+		logs.Error(err)
 		return nil, errors.New("invalid email format")
 	}
 
 	userResponse, err := s.userRepo.UpdateUserEmail(user)
 	if err != nil {
-		log.Println(err)
+		logs.Error(err)
 		return nil, err
 	}
 
@@ -234,9 +289,15 @@ func (s userService) UpdateUserUsername(UserUpdateUsernameRequest UserUpdateUser
 		UpdateAt: time.Now().Format("2006-01-02 15:04:05"),
 	}
 
+	// Validate username format
+	if len(user.Username) < 3 || len(user.Username) > 20 {
+		logs.Error("username length error")
+		return nil, errs.NewBadRequestError("username must be between 5 and 20 characters")
+	}
+
 	userResponse, err := s.userRepo.UpdateUserUsername(user)
 	if err != nil {
-		log.Println(err)
+		logs.Error(err)
 		return nil, err
 	}
 
@@ -261,7 +322,7 @@ func (s userService) UpdateUserProfile(UserUpdateProfileRequest UserUpdateProfil
 
 	userResponse, err := s.userRepo.UpdateUserProfile(user)
 	if err != nil {
-		log.Println(err)
+		logs.Error(err)
 		return nil, err
 	}
 
@@ -280,7 +341,7 @@ func (s userService) UpdateUserProfile(UserUpdateProfileRequest UserUpdateProfil
 func (s userService) DeleteUser(id int) (int, error) {
 	_, err := s.userRepo.DeleteUser(id)
 	if err != nil {
-		log.Println(err)
+		logs.Error(err)
 		return 0, err
 	}
 	return 1, nil

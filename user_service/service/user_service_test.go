@@ -25,7 +25,7 @@ func TestLoginUser(t *testing.T) {
 	// Test case: valid login
 	loginRequest := &UserLoginRequest{
 		Username: "test",
-		Password: "1234",
+		Password: "12345678",
 	}
 	userResponse, err := userService.LoginUser(loginRequest)
 	if err != nil {
@@ -81,7 +81,7 @@ func TestRegistorUser(t *testing.T) {
 	// Test case: valid registration
 	registrationRequest := UserRegisterRequest{
 		Email:        "unittest@test.com",
-		Password:     "1234",
+		Password:     "12345678",
 		Username:     "unittest",
 		UserFullname: "Unit Test",
 		UserBirthday: "2000-01-01",
@@ -100,7 +100,7 @@ func TestRegistorUser(t *testing.T) {
 	// Test case: invalid registration (duplicate username)
 	registrationRequestDuplicate := UserRegisterRequest{
 		Email:        "unittest@test.com",
-		Password:     "1234",
+		Password:     "1234567",
 		Username:     "unittest",
 		UserFullname: "Unit Test",
 		UserBirthday: "2000-01-01",

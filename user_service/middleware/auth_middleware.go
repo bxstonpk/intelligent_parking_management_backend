@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"net/http"
+	"os"
 	"strings"
 	"user_services/security"
 
@@ -10,16 +11,15 @@ import (
 )
 
 type authMiddleware struct {
-	secretKey string
 }
 
-func NewAuthMiddleware(secretKey string) authMiddleware {
-	return authMiddleware{secretKey: secretKey}
+func NewAuthMiddleware() authMiddleware {
+	return authMiddleware{}
 }
 
 type contextKey string
 
-const userIDKey contextKey = contextKey("userID")
+const UserIDKey contextKey = "userID"
 
 func (m *authMiddleware) JWTAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -30,15 +30,25 @@ func (m *authMiddleware) JWTAuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		tokenString = strings.TrimPrefix(tokenString, "Bearer ")
-		token, err := security.NewBcryptHasher(m.secretKey).ValidateToken(tokenString)
+		token, err := security.NewBcryptHasher(os.Getenv("SECRET_KEY")).ValidateToken(tokenString)
 		if err != nil || !token.Valid {
 			http.Error(w, "Invalid token", http.StatusUnauthorized)
 			return
 		}
-		claims, _ := token.Claims.(jwt.MapClaims)
-		userID, _ := claims["user_id"].(string)
 
-		ctx := context.WithValue(r.Context(), userIDKey, userID)
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			http.Error(w, "Invalid token claims", http.StatusUnauthorized)
+			return
+		}
+
+		userID, ok := claims["user_id"].(string)
+		if !ok {
+			http.Error(w, "Invalid user ID in token", http.StatusUnauthorized)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), UserIDKey, userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

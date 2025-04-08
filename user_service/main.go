@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 	"user_services/handler"
+	"user_services/logs"
 	"user_services/middleware"
 	repository "user_services/repository"
 	"user_services/service"
@@ -20,10 +21,7 @@ import (
 
 func main() {
 	// Load env variables
-	env_err := godotenv.Load()
-	if env_err != nil {
-		panic("Error loading .env file")
-	}
+	loadEnv()
 
 	// Connect to database
 	dbUser := os.Getenv("DB_USER")
@@ -50,17 +48,13 @@ func main() {
 		panic(err)
 	}
 
-	// Keys
-	SecretKey := os.Getenv("SECRET_KEY")
-
 	// Create User Repository
 	userRepository := repository.NewPostgresUserRepository(db)
 	userService := service.NewUserService(userRepository)
-	userHandler := handler.NewUserHandler(userService, SecretKey)
+	userHandler := handler.NewUserHandler(userService)
 
 	// Create Router
 	router := mux.NewRouter()
-	println("Router created")
 
 	// Public routes
 	router.HandleFunc("/login", userHandler.LoginUserHandler).Methods("POST")
@@ -70,7 +64,7 @@ func main() {
 	protected := router.PathPrefix("/secure").Subrouter()
 
 	// Use middleware for protected routes
-	authMiddleware := middleware.NewAuthMiddleware(SecretKey)
+	authMiddleware := middleware.NewAuthMiddleware()
 	protected.Use(authMiddleware.JWTAuthMiddleware)
 
 	// Define protected routes
@@ -82,5 +76,21 @@ func main() {
 	protected.HandleFunc("/updateuser/{userId:[0-9]+}/profile", userHandler.UpdateUserProfileHandler).Methods("POST")
 	protected.HandleFunc("/deleteuser/{userId:[0-9]+}", userHandler.DeleteUserHandler).Methods("DELETE")
 
-	http.ListenAndServe(":8081", router)
+	// Start server
+	logs.Info("User service starting on port " + os.Getenv("API_PORT"))
+	http.ListenAndServe(os.Getenv("API_PORT"), router)
+}
+
+// ENV
+func loadEnv() {
+	env_err := godotenv.Load()
+	if env_err != nil {
+		panic("Error loading .env file")
+	}
+}
+
+func GetSecretKey() string {
+	loadEnv()
+
+	return os.Getenv("SECRET_KEY")
 }
