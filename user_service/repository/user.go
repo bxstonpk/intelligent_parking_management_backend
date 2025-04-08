@@ -11,7 +11,6 @@ type User struct {
 	CreateAt     string `db:"create_at" validate:"required,datetime=2006-01-02 15:04:05"`
 	UpdateAt     string `db:"update_at"`
 	DeleteAt     string `db:"delete_at"`
-	IsDelete     string `db:"is_delete"`
 	UserProfile  []byte `db:"user_profile"`
 }
 

@@ -1,6 +1,9 @@
 package repository
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 type mockUserRepo struct {
 	users []User
@@ -19,7 +22,6 @@ func NewMockUserRepo() mockUserRepo {
 			CreateAt:     "2023-01-01",
 			UpdateAt:     "",
 			DeleteAt:     "",
-			IsDelete:     "0",
 			UserProfile:  nil,
 		},
 		{
@@ -33,7 +35,6 @@ func NewMockUserRepo() mockUserRepo {
 			CreateAt:     "2023-01-01",
 			UpdateAt:     "2023-01-01",
 			DeleteAt:     "2023-02-01",
-			IsDelete:     "1",
 			UserProfile:  nil,
 		},
 	}
@@ -146,7 +147,7 @@ func (r mockUserRepo) UpdateUserProfile(user User) (*User, error) {
 func (r mockUserRepo) DeleteUser(id int) (int, error) {
 	for i, u := range r.users {
 		if u.ID == id {
-			r.users[i].IsDelete = "1"
+			r.users[i].DeleteAt = time.Now().Format("2006-01-02 15:04:05")
 			return 1, nil
 		}
 	}

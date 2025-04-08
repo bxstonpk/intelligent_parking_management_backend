@@ -37,6 +37,12 @@ func main() {
 	}
 	println("Connected to database")
 
+	// Migrate the schema
+	err = db.AutoMigrate(&repository.User{})
+	if err != nil {
+		panic(err)
+	}
+
 	// Keys
 	SecretKey := os.Getenv("SECRET_KEY")
 
