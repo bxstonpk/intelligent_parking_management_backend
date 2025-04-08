@@ -13,5 +13,7 @@
 			"path": "user_service"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"postman.settings.dotenv-detection-notification-visibility": false
+	}
 }

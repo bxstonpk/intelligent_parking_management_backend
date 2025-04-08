@@ -1,0 +1,6 @@
+# Ignore dockerfile
+Dockerfile
+Docker-compose.yml
+
+# Ignore scylla.yaml
+configScylla
