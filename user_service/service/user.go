@@ -3,7 +3,8 @@ package service
 // User struct for user login and info
 type UserLoginRequest struct {
 	Password string `db:"password" validate:"required"`
-	Username string `db:"username" validate:"required"`
+	Username string `db:"username"`
+	Email    string `db:"email"`
 }
 
 type UserRegisterRequest struct {
@@ -14,14 +15,14 @@ type UserRegisterRequest struct {
 	UserBirthday string `db:"user_birthday" validate:"required,datetime=2006-01-02"`
 	UserGender   int    `db:"user_gender" validate:"required,numeric,min=1,max=2"`
 	CreateAt     string `db:"create_at"`
-	UserProfile  []byte `db:"user_profile"`
+	UserProfile  string `db:"user_profile"`
 }
 
 type UserUpdateInfoRequest struct {
-	ID           int    `db:"id" validate:"required,numeric,min=1"`
-	UserFullname string `db:"user_fullname"`
-	UserBirthday string `db:"user_birthday"`
-	UserGender   int    `db:"user_gender"`
+	ID           int    `db:"id" validate:"required,numeric,min=1" json:"id"`
+	UserFullname string `db:"user_fullname" json:"user_fullname"`
+	UserBirthday string `db:"user_birthday" json:"user_birthday"`
+	UserGender   int    `db:"user_gender" json:"user_gender"`
 }
 
 type UserUpdatePasswordRequest struct {
@@ -41,7 +42,7 @@ type UserUpdateUsernameRequest struct {
 
 type UserUpdateProfileRequest struct {
 	ID          int    `db:"id" validate:"required,numeric,min=1"`
-	UserProfile []byte `db:"user_profile" validate:"required"`
+	UserProfile string `db:"user_profile" validate:"required"`
 }
 
 type UserResponse struct {
@@ -51,7 +52,7 @@ type UserResponse struct {
 	UserFullname string `json:"user_fullname"`
 	UserBirthday string `json:"user_birthday"`
 	UserGender   int    `json:"user_gender"`
-	UserProfile  []byte `json:"user_profile"`
+	UserProfile  string `json:"user_profile"`
 }
 
 type UserService interface {

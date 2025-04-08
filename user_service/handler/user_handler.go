@@ -56,6 +56,7 @@ func (h userHandler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h userHandler) RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
+	println("Have to register")
 	var UserRegisterRequese service.UserRegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&UserRegisterRequese); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

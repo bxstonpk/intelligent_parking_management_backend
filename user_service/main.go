@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
+	"time"
 	"user_services/handler"
 	"user_services/middleware"
 	repository "user_services/repository"
@@ -13,6 +15,7 @@ import (
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func main() {
@@ -31,14 +34,18 @@ func main() {
 
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", dbHost, dbPort, dbUser, dbPassword, dbName)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		panic(err)
-	}
-	println("Connected to database")
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			SlowThreshold: time.Second, // Slow SQL threshold
+			LogLevel:      logger.Info, // Log level
+			Colorful:      true,        // Enable color
+		},
+	)
 
-	// Migrate the schema
-	err = db.AutoMigrate(&repository.User{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: newLogger,
+	})
 	if err != nil {
 		panic(err)
 	}
@@ -53,6 +60,7 @@ func main() {
 
 	// Create Router
 	router := mux.NewRouter()
+	println("Router created")
 
 	// Public routes
 	router.HandleFunc("/login", userHandler.LoginUserHandler).Methods("POST")
@@ -67,11 +75,11 @@ func main() {
 
 	// Define protected routes
 	protected.HandleFunc("/getuser/{userId:[0-9]+}", userHandler.GetUserHandler).Methods("GET")
-	protected.HandleFunc("/updateuser/{userId:[0-9]+}/info", userHandler.UpdateUserInfoHandler).Methods("PUT")
-	protected.HandleFunc("/updateuser/{userId:[0-9]+}/password", userHandler.UpdateUserPasswordHandler).Methods("PUT")
-	protected.HandleFunc("/updateuser/{userId:[0-9]+}/email", userHandler.UpdateUserEmailHandler).Methods("PUT")
-	protected.HandleFunc("/updateuser/{userId:[0-9]+}/username", userHandler.UpdateUserUsernameHandler).Methods("PUT")
-	protected.HandleFunc("/updateuser/{userId:[0-9]+}/profile", userHandler.UpdateUserProfileHandler).Methods("PUT")
+	protected.HandleFunc("/updateuser/{userId:[0-9]+}/info", userHandler.UpdateUserInfoHandler).Methods("POST")
+	protected.HandleFunc("/updateuser/{userId:[0-9]+}/password", userHandler.UpdateUserPasswordHandler).Methods("POST")
+	protected.HandleFunc("/updateuser/{userId:[0-9]+}/email", userHandler.UpdateUserEmailHandler).Methods("POST")
+	protected.HandleFunc("/updateuser/{userId:[0-9]+}/username", userHandler.UpdateUserUsernameHandler).Methods("POST")
+	protected.HandleFunc("/updateuser/{userId:[0-9]+}/profile", userHandler.UpdateUserProfileHandler).Methods("POST")
 	protected.HandleFunc("/deleteuser/{userId:[0-9]+}", userHandler.DeleteUserHandler).Methods("DELETE")
 
 	http.ListenAndServe(":8081", router)

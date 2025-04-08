@@ -87,7 +87,7 @@ func TestRegistorUser(t *testing.T) {
 		UserBirthday: "2000-01-01",
 		UserGender:   1,
 		CreateAt:     "2023-01-01",
-		UserProfile:  []byte{},
+		UserProfile:  "",
 	}
 	userID, err := userService.RegisterUser(registrationRequest)
 	if err != nil {
@@ -106,7 +106,7 @@ func TestRegistorUser(t *testing.T) {
 		UserBirthday: "2000-01-01",
 		UserGender:   1,
 		CreateAt:     "2023-01-01",
-		UserProfile:  []byte{},
+		UserProfile:  "",
 	}
 	userIDDuplicate, err := userService.RegisterUser(registrationRequestDuplicate)
 	if err == nil {
@@ -125,7 +125,7 @@ func TestRegistorUser(t *testing.T) {
 		UserBirthday: "2000-01-01",
 		UserGender:   1,
 		CreateAt:     "2023-01-01",
-		UserProfile:  []byte{},
+		UserProfile:  "",
 	}
 	userIDInvalid, err := userService.RegisterUser(registrationRequestInvalid)
 	if err == nil {
@@ -144,7 +144,7 @@ func TestRegistorUser(t *testing.T) {
 		UserBirthday: "2000-01-01",
 		UserGender:   1,
 		CreateAt:     "2023-01-01",
-		UserProfile:  []byte{},
+		UserProfile:  "",
 	}
 	userIDInvalidEmail, err := userService.RegisterUser(registrationRequestInvalidEmail)
 	if err == nil {
@@ -350,7 +350,7 @@ func TestUpdateUserProfile(t *testing.T) {
 	// Test case: valid profile update
 	updateProfileRequest := UserUpdateProfileRequest{
 		ID:          1,
-		UserProfile: []byte("new_profile_data"),
+		UserProfile: "new_profile_data",
 	}
 	userResponse, err := userService.UpdateUserProfile(updateProfileRequest)
 	if err != nil {
@@ -363,7 +363,7 @@ func TestUpdateUserProfile(t *testing.T) {
 	// Test case: invalid profile update (user not found)
 	updateProfileRequestInvalid := UserUpdateProfileRequest{
 		ID:          999,
-		UserProfile: []byte("new_profile_data"),
+		UserProfile: "new_profile_data",
 	}
 	userResponseInvalid, err := userService.UpdateUserProfile(updateProfileRequestInvalid)
 	if err == nil {

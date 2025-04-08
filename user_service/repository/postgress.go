@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"log"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -15,10 +16,10 @@ func NewPostgresUserRepository(db *gorm.DB) postgresUserRepository {
 	return postgresUserRepository{db: db}
 }
 
-func (r postgresUserRepository) LoginUser(email_username string, pasword string) (*User, error) {
+func (r postgresUserRepository) LoginUser(email_username string, pasword string) (*Users, error) {
 	// Check user login without password hashing
-	user := User{}
-	result := r.db.First(&user, "(username = ? OR email = ?) AND password = ?", email_username, email_username, pasword)
+	user := Users{}
+	result := r.db.First(&user, "(username = ? OR email = ?) AND password = ? AND delete_at IS NULL", email_username, email_username, pasword)
 	if result.Error != nil {
 		log.Printf("Error: %v", result.Error)
 		return nil, result.Error
@@ -26,9 +27,9 @@ func (r postgresUserRepository) LoginUser(email_username string, pasword string)
 	return &user, nil
 }
 
-func (r postgresUserRepository) GetUser(id int) (*User, error) {
-	user := User{}
-	result := r.db.First(&user, id)
+func (r postgresUserRepository) GetUser(id int) (*Users, error) {
+	user := Users{}
+	result := r.db.First(&user, "id = ? AND delete_at IS NULL", id)
 	if result.Error != nil {
 		log.Fatalf("Error: %v", result.Error)
 		return nil, result.Error
@@ -36,56 +37,57 @@ func (r postgresUserRepository) GetUser(id int) (*User, error) {
 	return &user, nil
 }
 
-func (r postgresUserRepository) RegisterUser(user *User) (int, error) {
+func (r postgresUserRepository) RegisterUser(user *Users) (int, error) {
 	result := r.db.Create(user)
 	if result.Error != nil {
-		log.Fatalf("Error: %v", result.Error)
+		log.Printf("Error: %v", result.Error)
 		return 0, result.Error
 	}
+	fmt.Println("User created successfully")
 	return 1, nil
 }
 
-func (r postgresUserRepository) UpdateUserInfo(user *User) (*User, error) {
-	UserResponse := User{}
-	result := r.db.Model(User{}).Where("id = ?", user.ID).Updates(user).Scan(&UserResponse)
+func (r postgresUserRepository) UpdateUserInfo(user *Users) (*Users, error) {
+	UserResponse := Users{}
+	result := r.db.Model(Users{}).Where("id = ? AND delete_at IS NULL", user.ID).Updates(user).Scan(&UserResponse)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return &UserResponse, nil
 }
 
-func (r postgresUserRepository) UpdateUserPassword(user *User) (*User, error) {
-	UserResponse := User{}
-	result := r.db.Model(User{}).Where("id = ?", user.ID).Update("password", user.Password).Scan(&UserResponse)
+func (r postgresUserRepository) UpdateUserPassword(user *Users) (*Users, error) {
+	UserResponse := Users{}
+	result := r.db.Model(Users{}).Where("id = ? AND delete_at IS NULL", user.ID).Update("password", user.Password).Scan(&UserResponse)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return &UserResponse, nil
 }
 
-func (r postgresUserRepository) UpdateUserEmail(user User) (*User, error) {
-	UserResponse := User{}
-	result := r.db.Model(User{}).Where("id = ?", user.ID).Update("email", user.Email).Scan(&UserResponse)
+func (r postgresUserRepository) UpdateUserEmail(user Users) (*Users, error) {
+	UserResponse := Users{}
+	result := r.db.Model(Users{}).Where("id = ? AND delete_at IS NULL", user.ID).Update("email", user.Email).Scan(&UserResponse)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return &UserResponse, nil
 }
 
-func (r postgresUserRepository) UpdateUserUsername(user User) (*User, error) {
-	UserResponse := User{}
+func (r postgresUserRepository) UpdateUserUsername(user Users) (*Users, error) {
+	UserResponse := Users{}
 	/* query := "UPDATE users SET username = $1, update_at = $2 WHERE id = $3 RETURNING *" */
-	result := r.db.Model(User{}).Where("id = ?", user.ID).Update("username", user.Username).Scan(&UserResponse)
+	result := r.db.Model(Users{}).Where("id = ? AND delete_at IS NULL", user.ID).Update("username", user.Username).Scan(&UserResponse)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return &UserResponse, nil
 }
 
-func (r postgresUserRepository) UpdateUserProfile(user User) (*User, error) {
-	UserResponse := User{}
+func (r postgresUserRepository) UpdateUserProfile(user Users) (*Users, error) {
+	UserResponse := Users{}
 	/* query := "UPDATE users SET user_profile = $1, update_at = $2 WHERE id = $3 RETURNING *" */
-	result := r.db.Model(User{}).Where("id = ?", user.ID).Update("user_profile", user.UserProfile).Scan(&UserResponse)
+	result := r.db.Model(Users{}).Where("id = ? AND delete_at IS NULL", user.ID).Update("user_profile", user.UserProfile).Scan(&UserResponse)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -94,7 +96,7 @@ func (r postgresUserRepository) UpdateUserProfile(user User) (*User, error) {
 
 func (r postgresUserRepository) DeleteUser(id int) (int, error) {
 	/* query := "UPDATE users SET is_delete = 1, delete_at = NOW() WHERE id = $1" */
-	result := r.db.Delete(&User{}, id)
+	result := r.db.Model(Users{}).Where("id = ?", id).Update("delete_at", gorm.Expr("NOW()"))
 	if result.Error != nil {
 		return 0, result.Error
 	}
