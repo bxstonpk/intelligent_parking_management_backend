@@ -1,48 +1,47 @@
 package service
 
 // User struct for user login and info
-type UserLoginRequese struct {
-	Password string `db:"password"`
-	Username string `db:"username"`
+type UserLoginRequest struct {
+	Password string `db:"password" validate:"required"`
+	Username string `db:"username" validate:"required"`
 }
 
-type UserRegisterRequese struct {
-	ID           int    `db:"id"`
-	Email        string `db:"email"`
-	Password     string `db:"password"`
-	Username     string `db:"username"`
-	UserFullname string `db:"user_fullname"`
-	UserBirthday string `db:"user_birthday"`
-	UserGender   int    `db:"user_gender"`
+type UserRegisterRequest struct {
+	Email        string `db:"email" validate:"required,email"`
+	Password     string `db:"password" validate:"required"`
+	Username     string `db:"username" validate:"required"`
+	UserFullname string `db:"user_fullname" validate:"required"`
+	UserBirthday string `db:"user_birthday" validate:"required,datetime=2006-01-02"`
+	UserGender   int    `db:"user_gender" validate:"required,numeric,min=1,max=2"`
 	CreateAt     string `db:"create_at"`
 	UserProfile  []byte `db:"user_profile"`
 }
 
-type UserUpdateInfoRequese struct {
-	ID           int    `db:"id"`
+type UserUpdateInfoRequest struct {
+	ID           int    `db:"id" validate:"required,numeric,min=1"`
 	UserFullname string `db:"user_fullname"`
 	UserBirthday string `db:"user_birthday"`
 	UserGender   int    `db:"user_gender"`
 }
 
-type UserUpdatePasswordRequese struct {
-	ID       int    `db:"id"`
-	Password string `db:"password"`
+type UserUpdatePasswordRequest struct {
+	ID       int    `db:"id" validate:"required,numeric,min=1"`
+	Password string `db:"password" validate:"required"`
 }
 
-type UserUpdateEmailRequese struct {
-	ID    int    `db:"id"`
-	Email string `db:"email"`
+type UserUpdateEmailRequest struct {
+	ID    int    `db:"id" validate:"required,numeric,min=1"`
+	Email string `db:"email" validate:"required,email"`
 }
 
-type UserUpdateUsernameRequese struct {
-	ID       int    `db:"id"`
-	Username string `db:"username"`
+type UserUpdateUsernameRequest struct {
+	ID       int    `db:"id" validate:"required,numeric,min=1"`
+	Username string `db:"username" validate:"required"`
 }
 
-type UserUpdateProfileRequese struct {
-	ID          int    `db:"id"`
-	UserProfile []byte `db:"user_profile"`
+type UserUpdateProfileRequest struct {
+	ID          int    `db:"id" validate:"required,numeric,min=1"`
+	UserProfile []byte `db:"user_profile" validate:"required"`
 }
 
 type UserResponse struct {
@@ -56,13 +55,13 @@ type UserResponse struct {
 }
 
 type UserService interface {
-	LoginUser(*UserLoginRequese) (*UserResponse, error)
+	LoginUser(*UserLoginRequest) (*UserResponse, error)
 	GetUser(int) (*UserResponse, error)
-	RegisterUser(UserRegisterRequese) (int, error)
-	UpdateUserInfo(UserUpdateInfoRequese) (*UserResponse, error)
-	UpdateUserPassword(UserUpdatePasswordRequese) (*UserResponse, error)
-	UpdateUserEmail(UserUpdateEmailRequese) (*UserResponse, error)
-	UpdateUserUsername(UserUpdateUsernameRequese) (*UserResponse, error)
-	UpdateUserProfile(UserUpdateProfileRequese) (*UserResponse, error)
+	RegisterUser(UserRegisterRequest) (int, error)
+	UpdateUserInfo(UserUpdateInfoRequest) (*UserResponse, error)
+	UpdateUserPassword(UserUpdatePasswordRequest) (*UserResponse, error)
+	UpdateUserEmail(UserUpdateEmailRequest) (*UserResponse, error)
+	UpdateUserUsername(UserUpdateUsernameRequest) (*UserResponse, error)
+	UpdateUserProfile(UserUpdateProfileRequest) (*UserResponse, error)
 	DeleteUser(int) (int, error)
 }

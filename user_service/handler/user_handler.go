@@ -12,7 +12,7 @@ import (
 )
 
 func (h userHandler) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
-	var UserLoginRequese service.UserLoginRequese
+	var UserLoginRequese service.UserLoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&UserLoginRequese); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -25,7 +25,7 @@ func (h userHandler) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generate JWT token here if needed and add it to the response
-	token, err := security.NewBcryptHasher(h.secretKey).GenerateJWT(string(user.ID))
+	token, err := security.NewBcryptHasher(h.secretKey).GenerateJWT(strconv.Itoa(user.ID))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -56,7 +56,7 @@ func (h userHandler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h userHandler) RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
-	var UserRegisterRequese service.UserRegisterRequese
+	var UserRegisterRequese service.UserRegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&UserRegisterRequese); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -77,7 +77,7 @@ func (h userHandler) RegisterUserHandler(w http.ResponseWriter, r *http.Request)
 
 func (h userHandler) UpdateUserInfoHandler(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["userId"])
-	var UserUpdateInfoRequese service.UserUpdateInfoRequese
+	var UserUpdateInfoRequese service.UserUpdateInfoRequest
 	if err := json.NewDecoder(r.Body).Decode(&UserUpdateInfoRequese); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -99,7 +99,7 @@ func (h userHandler) UpdateUserInfoHandler(w http.ResponseWriter, r *http.Reques
 
 func (h userHandler) UpdateUserPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["userId"])
-	var UserUpdatePasswordRequese service.UserUpdatePasswordRequese
+	var UserUpdatePasswordRequese service.UserUpdatePasswordRequest
 	if err := json.NewDecoder(r.Body).Decode(&UserUpdatePasswordRequese); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -121,7 +121,7 @@ func (h userHandler) UpdateUserPasswordHandler(w http.ResponseWriter, r *http.Re
 
 func (h userHandler) UpdateUserEmailHandler(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["userId"])
-	var UserUpdateEmailRequese service.UserUpdateEmailRequese
+	var UserUpdateEmailRequese service.UserUpdateEmailRequest
 	if err := json.NewDecoder(r.Body).Decode(&UserUpdateEmailRequese); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -143,7 +143,7 @@ func (h userHandler) UpdateUserEmailHandler(w http.ResponseWriter, r *http.Reque
 
 func (h userHandler) UpdateUserUsernameHandler(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["userId"])
-	var UserUpdateUsernameRequese service.UserUpdateUsernameRequese
+	var UserUpdateUsernameRequese service.UserUpdateUsernameRequest
 	if err := json.NewDecoder(r.Body).Decode(&UserUpdateUsernameRequese); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -165,7 +165,7 @@ func (h userHandler) UpdateUserUsernameHandler(w http.ResponseWriter, r *http.Re
 
 func (h userHandler) UpdateUserProfileHandler(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["userId"])
-	var UserUpdateProfileRequese service.UserUpdateProfileRequese
+	var UserUpdateProfileRequese service.UserUpdateProfileRequest
 	if err := json.NewDecoder(r.Body).Decode(&UserUpdateProfileRequese); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

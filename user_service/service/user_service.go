@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"net/mail"
 	"time"
 	"user_services/repository"
 
@@ -19,20 +20,20 @@ func NewUserService(userRepo repository.UserRepository) userService {
 	return userService{userRepo: userRepo}
 }
 
-func (s userService) LoginUser(UserRegisterRequese *UserLoginRequese) (*UserResponse, error) {
+func (s userService) LoginUser(UserRegisterRequest *UserLoginRequest) (*UserResponse, error) {
 	// Check user
-	username := UserRegisterRequese.Username
+	username := UserRegisterRequest.Username
 	log.Println(username)
 	if username == "" {
 		return nil, errors.New("username is empty")
 	}
-	password := UserRegisterRequese.Password
+	password := UserRegisterRequest.Password
 	log.Println(password)
 	if password == "" {
 		return nil, errors.New("password is empty")
 	}
 
-	user, err := s.userRepo.LoginUser(UserRegisterRequese.Username, UserRegisterRequese.Password)
+	user, err := s.userRepo.LoginUser(UserRegisterRequest.Username, UserRegisterRequest.Password)
 	if err != nil {
 
 		if err == gorm.ErrRecordNotFound {
@@ -79,16 +80,16 @@ func (s userService) GetUser(id int) (*UserResponse, error) {
 	return &UserResponse, nil
 }
 
-func (s userService) RegisterUser(UserRegisterRequese UserRegisterRequese) (int, error) {
+func (s userService) RegisterUser(UserRegisterRequest UserRegisterRequest) (int, error) {
 	user := repository.User{
-		Email:        UserRegisterRequese.Email,
-		Password:     UserRegisterRequese.Password,
-		Username:     UserRegisterRequese.Username,
-		UserFullname: UserRegisterRequese.UserFullname,
-		UserBirthday: UserRegisterRequese.UserBirthday,
-		UserGender:   UserRegisterRequese.UserGender,
-		CreateAt:     UserRegisterRequese.CreateAt,
-		UserProfile:  UserRegisterRequese.UserProfile,
+		Email:        UserRegisterRequest.Email,
+		Password:     UserRegisterRequest.Password,
+		Username:     UserRegisterRequest.Username,
+		UserFullname: UserRegisterRequest.UserFullname,
+		UserBirthday: UserRegisterRequest.UserBirthday,
+		UserGender:   UserRegisterRequest.UserGender,
+		CreateAt:     UserRegisterRequest.CreateAt,
+		UserProfile:  UserRegisterRequest.UserProfile,
 	}
 
 	status, err := s.userRepo.RegisterUser(&user)
@@ -105,12 +106,12 @@ func (s userService) RegisterUser(UserRegisterRequese UserRegisterRequese) (int,
 	return status, nil
 }
 
-func (s userService) UpdateUserInfo(UserUpdateInfoRequese UserUpdateInfoRequese) (*UserResponse, error) {
+func (s userService) UpdateUserInfo(UserUpdateInfoRequest UserUpdateInfoRequest) (*UserResponse, error) {
 	user := repository.User{
-		ID:           UserUpdateInfoRequese.ID,
-		UserFullname: UserUpdateInfoRequese.UserFullname,
-		UserBirthday: UserUpdateInfoRequese.UserBirthday,
-		UserGender:   UserUpdateInfoRequese.UserGender,
+		ID:           UserUpdateInfoRequest.ID,
+		UserFullname: UserUpdateInfoRequest.UserFullname,
+		UserBirthday: UserUpdateInfoRequest.UserBirthday,
+		UserGender:   UserUpdateInfoRequest.UserGender,
 		UpdateAt:     time.Now().Format("2006-01-02 15:04:05"),
 	}
 
@@ -132,10 +133,10 @@ func (s userService) UpdateUserInfo(UserUpdateInfoRequese UserUpdateInfoRequese)
 	return &UserResponse, nil
 }
 
-func (s userService) UpdateUserPassword(UserUpdatePasswordRequese UserUpdatePasswordRequese) (*UserResponse, error) {
+func (s userService) UpdateUserPassword(UserUpdatePasswordRequest UserUpdatePasswordRequest) (*UserResponse, error) {
 	user := repository.User{
-		ID:       UserUpdatePasswordRequese.ID,
-		Password: UserUpdatePasswordRequese.Password,
+		ID:       UserUpdatePasswordRequest.ID,
+		Password: UserUpdatePasswordRequest.Password,
 		UpdateAt: time.Now().Format("2006-01-02 15:04:05"),
 	}
 
@@ -157,10 +158,16 @@ func (s userService) UpdateUserPassword(UserUpdatePasswordRequese UserUpdatePass
 	return &UserResponse, nil
 }
 
-func (s userService) UpdateUserEmail(UserUpdateEmailRequese UserUpdateEmailRequese) (*UserResponse, error) {
+func (s userService) UpdateUserEmail(UserUpdateEmailRequest UserUpdateEmailRequest) (*UserResponse, error) {
 	user := repository.User{
-		ID:    UserUpdateEmailRequese.ID,
-		Email: UserUpdateEmailRequese.Email,
+		ID:    UserUpdateEmailRequest.ID,
+		Email: UserUpdateEmailRequest.Email,
+	}
+
+	// Validate email format
+	if _, err := mail.ParseAddress(user.Email); err != nil {
+		log.Println(err)
+		return nil, errors.New("invalid email format")
 	}
 
 	userResponse, err := s.userRepo.UpdateUserEmail(user)
@@ -181,10 +188,10 @@ func (s userService) UpdateUserEmail(UserUpdateEmailRequese UserUpdateEmailReque
 	return &UserResponse, nil
 }
 
-func (s userService) UpdateUserUsername(UserUpdateUsernameRequese UserUpdateUsernameRequese) (*UserResponse, error) {
+func (s userService) UpdateUserUsername(UserUpdateUsernameRequest UserUpdateUsernameRequest) (*UserResponse, error) {
 	user := repository.User{
-		ID:       UserUpdateUsernameRequese.ID,
-		Username: UserUpdateUsernameRequese.Username,
+		ID:       UserUpdateUsernameRequest.ID,
+		Username: UserUpdateUsernameRequest.Username,
 		UpdateAt: time.Now().Format("2006-01-02 15:04:05"),
 	}
 
@@ -206,10 +213,10 @@ func (s userService) UpdateUserUsername(UserUpdateUsernameRequese UserUpdateUser
 	return &UserResponse, nil
 }
 
-func (s userService) UpdateUserProfile(UserUpdateProfileRequese UserUpdateProfileRequese) (*UserResponse, error) {
+func (s userService) UpdateUserProfile(UserUpdateProfileRequest UserUpdateProfileRequest) (*UserResponse, error) {
 	user := repository.User{
-		ID:          UserUpdateProfileRequese.ID,
-		UserProfile: UserUpdateProfileRequese.UserProfile,
+		ID:          UserUpdateProfileRequest.ID,
+		UserProfile: UserUpdateProfileRequest.UserProfile,
 		UpdateAt:    time.Now().Format("2006-01-02 15:04:05"),
 	}
 

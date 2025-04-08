@@ -2,13 +2,13 @@ package repository
 
 type User struct {
 	ID           int    `db:"id"`
-	Email        string `db:"email"`
-	Password     string `db:"password"`
-	Username     string `db:"username"`
-	UserFullname string `db:"user_fullname"`
-	UserBirthday string `db:"user_birthday"`
-	UserGender   int    `db:"user_gender"`
-	CreateAt     string `db:"create_at"`
+	Email        string `db:"email" validate:"required,email"`
+	Password     string `db:"password" validate:"required"`
+	Username     string `db:"username" validate:"required"`
+	UserFullname string `db:"user_fullname" validate:"required"`
+	UserBirthday string `db:"user_birthday" validate:"required,datetime=2006-01-02"`
+	UserGender   int    `db:"user_gender" validate:"required, numeric,min=1,max=2"`
+	CreateAt     string `db:"create_at" validate:"required,datetime=2006-01-02 15:04:05"`
 	UpdateAt     string `db:"update_at"`
 	DeleteAt     string `db:"delete_at"`
 	IsDelete     string `db:"is_delete"`
