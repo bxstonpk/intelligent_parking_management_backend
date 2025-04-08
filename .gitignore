@@ -3,4 +3,4 @@ Dockerfile
 Docker-compose.yml
 
 # Ignore scylla.yaml
-configScylla
+configScylla.DS_Store
