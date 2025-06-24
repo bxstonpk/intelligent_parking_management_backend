@@ -59,6 +59,7 @@ func main() {
 	// Public routes
 	router.HandleFunc("/login", userHandler.LoginUserHandler).Methods("POST")
 	router.HandleFunc("/register", userHandler.RegisterUserHandler).Methods("POST")
+	router.HandleFunc("/refresh-token", userHandler.RefreshToken).Methods("POST")
 
 	// Protected routes
 	protected := router.PathPrefix("/secure").Subrouter()

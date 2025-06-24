@@ -48,20 +48,30 @@ func (s userService) LoginUser(UserRegisterRequest *UserLoginRequest) (*UserResp
 	if err != nil {
 		logs.Error(err)
 
-		if err == gorm.ErrRecordNotFound {
-			return nil, errs.NewNotFoundError("user not found")
+		UserResponse := UserResponse{
+			massege: "0",
 		}
-		return nil, errs.NewUnexpectedError()
+
+		if err == gorm.ErrRecordNotFound {
+			return &UserResponse, errs.NewNotFoundError("user not found")
+		}
+		return &UserResponse, errs.NewUnexpectedError()
 	}
 
 	// Check password
 	secretKey := os.Getenv("SECRET_KEY")
 	if status := security.NewBcryptHasher(secretKey).CheckPasswordHash(UserRegisterRequest.Password, user.Password); !status {
 		logs.Error(err)
-		return nil, errs.NewBadRequestError("invalid password")
+
+		UserResponse := UserResponse{
+			massege: "0",
+		}
+
+		return &UserResponse, errs.NewBadRequestError("invalid password")
 	}
 
 	UserResponse := UserResponse{
+		massege:      "1",
 		ID:           user.ID,
 		Email:        user.Email,
 		Username:     user.Username,
@@ -79,15 +89,20 @@ func (s userService) GetUser(id int) (*UserResponse, error) {
 	if err != nil {
 		logs.Error(err)
 
-		if err == gorm.ErrRecordNotFound {
-			logs.Error(err)
-			return nil, errs.NewNotFoundError("user not found")
+		UserResponse := UserResponse{
+			massege: "0",
 		}
 
-		return nil, errs.NewUnexpectedError()
+		if err == gorm.ErrRecordNotFound {
+			logs.Error(err)
+			return &UserResponse, errs.NewNotFoundError("user not found")
+		}
+
+		return &UserResponse, errs.NewUnexpectedError()
 	}
 
 	UserResponse := UserResponse{
+		massege:      "1",
 		ID:           user.ID,
 		Email:        user.Email,
 		Username:     user.Username,
@@ -198,10 +213,15 @@ func (s userService) UpdateUserInfo(UserUpdateInfoRequest UserUpdateInfoRequest)
 	userResponse, err := s.userRepo.UpdateUserInfo(&user)
 	if err != nil {
 		logs.Error(err)
-		return nil, errs.NewBadRequestError("invalid user id")
+		userResponse := UserResponse{
+			massege: "0",
+		}
+
+		return &userResponse, errs.NewBadRequestError("invalid user id")
 	}
 
 	UserResponse := UserResponse{
+		massege:      "1",
 		ID:           userResponse.ID,
 		Email:        userResponse.Email,
 		Username:     userResponse.Username,

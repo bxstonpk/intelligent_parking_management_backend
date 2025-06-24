@@ -1,4 +1,0 @@
-kafka:
-  servers:
-    - localhost:9092
-  group: api_gateway

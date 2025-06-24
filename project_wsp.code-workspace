@@ -1,15 +1,6 @@
 {
 	"folders": [
 		{
-			"path": "server"
-		},
-		{
-			"path": "apis_gateway"
-		},
-		{
-			"path": "events"
-		},
-		{
 			"path": "user_service"
 		}
 	],

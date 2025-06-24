@@ -46,6 +46,7 @@ type UserUpdateProfileRequest struct {
 }
 
 type UserResponse struct {
+	massege      string `json:"message"`
 	ID           int    `json:"id"`
 	Email        string `json:"email"`
 	Username     string `json:"username"`
