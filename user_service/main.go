@@ -48,6 +48,15 @@ func main() {
 		panic(err)
 	}
 
+	// Migrate database
+	err = db.AutoMigrate(
+		&repository.Users{},
+	)
+	if err != nil {
+		logs.Error("Failed to migrate database: " + err.Error())
+		return
+	}
+
 	// Create User Repository
 	userRepository := repository.NewPostgresUserRepository(db)
 	userService := service.NewUserService(userRepository)
@@ -59,6 +68,7 @@ func main() {
 	// Public routes
 	router.HandleFunc("/login", userHandler.LoginUserHandler).Methods("POST")
 	router.HandleFunc("/register", userHandler.RegisterUserHandler).Methods("POST")
+	router.HandleFunc("/checktoken", userHandler.CheckTokenHandler).Methods("POST")
 
 	// Protected routes
 	protected := router.PathPrefix("/secure").Subrouter()

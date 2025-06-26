@@ -273,3 +273,30 @@ func (h userHandler) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (h userHandler) CheckTokenHandler(w http.ResponseWriter, r *http.Request) {
+	token := r.Header.Get("Authorization")
+	if token == "" {
+		handlerError(w, errs.NewBadRequestError("missing token"))
+		return
+	}
+
+	// Remove "Bearer " prefix if present
+	if len(token) > 7 && token[:7] == "Bearer " {
+		token = token[7:]
+	}
+
+	valid, err := service.NewSecurityService(os.Getenv("SECRET_KEY")).CheckToken(token)
+	if err != nil {
+		handlerError(w, err)
+		return
+	}
+
+	if !valid {
+		handlerError(w, errs.NewBadRequestError("invalid token"))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Token is valid"))
+}
