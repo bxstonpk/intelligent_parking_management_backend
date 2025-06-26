@@ -1,6 +1,7 @@
 package service
 
 import (
+	"user_services/errs"
 	"user_services/security"
 )
 
@@ -24,7 +25,7 @@ func (s curityService) CheckToken(token string) (bool, error) {
 
 	_, err := security.NewBcryptHasher(s.SecretKey).ValidateToken(token)
 	if err != nil {
-		return false, err
+		return false, errs.NewBadRequestError("invalid token")
 	}
 
 	return true, nil

@@ -317,3 +317,24 @@
 ```plaintext
   forbidden
 ```
+
+##
+### 10. **Check Token**
+
+**Check Token** `/checktoken`
+
+**Headers:**
+```plaintext
+  Authorization: Brarer <token>
+```
+
+**Response**
+- 200 OK:
+```plaintext
+  Token is valid
+```
+
+- 400 Bad Request:
+```plaintext
+  invalid token
+```
