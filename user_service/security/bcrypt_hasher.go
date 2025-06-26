@@ -35,35 +35,19 @@ func (b bcryptHasher) CheckPasswordHash(password string, passwordHash string) bo
 	return true
 }
 
-func (s bcryptHasher) GenerateJWT(userID string) (string, string, error) {
+func (s bcryptHasher) GenerateJWT(userID string) (string, error) {
 	// Ensure the secret key is set
 	secretKey = []byte(os.Getenv("SECRET_KEY"))
 	if secretKey == nil {
-		return "", "", errs.NewUnexpectedError()
+		return "", errs.NewUnexpectedError()
 	}
 
-	// Create the access token
-	atclaims := jwt.MapClaims{
+	claims := jwt.MapClaims{
 		"user_id": userID,
 		"exp":     time.Now().Add(time.Hour * 24).Unix(),
 	}
-	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atclaims)
-	accessToken, err := at.SignedString(secretKey)
-	if err != nil {
-		return "", "", errs.NewUnexpectedError()
-	}
-
-	// Create the refresh token
-	rtclaims := jwt.MapClaims{
-		"user_id": userID,
-		"exp":     time.Now().Add(time.Hour * 24 * 30).Unix(),
-	}
-	rt := jwt.NewWithClaims(jwt.SigningMethodHS256, rtclaims)
-	refreshToken, err := rt.SignedString(secretKey)
-	if err != nil {
-		return "", "", errs.NewUnexpectedError()
-	}
-	return accessToken, refreshToken, nil
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(secretKey)
 }
 
 func (s bcryptHasher) ValidateToken(tokenString string) (*jwt.Token, error) {

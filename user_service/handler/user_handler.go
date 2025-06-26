@@ -11,7 +11,6 @@ import (
 	"user_services/security"
 	"user_services/service"
 
-	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/mux"
 )
 
@@ -30,7 +29,7 @@ func (h userHandler) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generate JWT token here if needed and add it to the response
-	token, refreshToken, err := security.NewBcryptHasher(os.Getenv("SECRET_KEY")).GenerateJWT(strconv.Itoa(user.ID))
+	token, err := security.NewBcryptHasher(os.Getenv("SECRET_KEY")).GenerateJWT(strconv.Itoa(user.ID))
 	if err != nil {
 		logs.Error("Failed to generate JWT token: ")
 		handlerError(w, err)
@@ -39,55 +38,9 @@ func (h userHandler) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Authorization", "Bearer "+token)
-	w.Header().Set("Refresh-Token", refreshToken)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		logs.Error("Failed to encode user response: ")
 		handlerError(w, err)
-		return
-	}
-}
-
-func (h userHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
-	// Extract the refresh token from the request
-	refreshToken := r.Header.Get("Refresh-Token")
-
-	// Validate the refresh token
-	if refreshToken == "" {
-		http.Error(w, "Refresh token is required", http.StatusBadRequest)
-		return
-	}
-
-	// Verify the refresh token
-	token, err := jwt.Parse(refreshToken, func(t *jwt.Token) (interface{}, error) {
-		// Use the secret key to validate the token
-		return refreshToken, nil
-	})
-	if err != nil || !token.Valid {
-		logs.Error("Invalid refresh token")
-		http.Error(w, "Invalid refresh token", http.StatusUnauthorized)
-		return
-	}
-
-	clams := token.Claims.(jwt.MapClaims)
-	userId, ok := clams["user_id"].(string)
-	if !ok {
-		logs.Error("Invalid token claims")
-		http.Error(w, "Invalid token claims", http.StatusUnauthorized)
-		return
-	}
-	// Generate a new JWT token
-	newToken, _, err := security.NewBcryptHasher(os.Getenv("SECRET_KEY")).GenerateJWT(userId)
-	if err != nil {
-		logs.Error("Failed to generate new token: ")
-		http.Error(w, "Failed to generate new token", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Authorization", "Bearer "+newToken)
-	if err := json.NewEncoder(w).Encode(newToken); err != nil {
-		logs.Error("Failed to encode new token response: ")
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }

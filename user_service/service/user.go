@@ -46,7 +46,7 @@ type UserUpdateProfileRequest struct {
 }
 
 type UserResponse struct {
-	massege      string `json:"message"`
+	Message      string `json:"message"`
 	ID           int    `json:"id"`
 	Email        string `json:"email"`
 	Username     string `json:"username"`
@@ -66,4 +66,5 @@ type UserService interface {
 	UpdateUserUsername(UserUpdateUsernameRequest) (*UserResponse, error)
 	UpdateUserProfile(UserUpdateProfileRequest) (*UserResponse, error)
 	DeleteUser(int) (int, error)
+	CheckToken(string) (bool, error)
 }

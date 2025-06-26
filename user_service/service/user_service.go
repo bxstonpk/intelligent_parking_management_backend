@@ -48,9 +48,7 @@ func (s userService) LoginUser(UserRegisterRequest *UserLoginRequest) (*UserResp
 	if err != nil {
 		logs.Error(err)
 
-		UserResponse := UserResponse{
-			massege: "0",
-		}
+		UserResponse := UserResponse{}
 
 		if err == gorm.ErrRecordNotFound {
 			return &UserResponse, errs.NewNotFoundError("user not found")
@@ -64,14 +62,14 @@ func (s userService) LoginUser(UserRegisterRequest *UserLoginRequest) (*UserResp
 		logs.Error(err)
 
 		UserResponse := UserResponse{
-			massege: "0",
+			Message: "0",
 		}
 
 		return &UserResponse, errs.NewBadRequestError("invalid password")
 	}
 
 	UserResponse := UserResponse{
-		massege:      "1",
+		Message:      "1",
 		ID:           user.ID,
 		Email:        user.Email,
 		Username:     user.Username,
@@ -89,9 +87,7 @@ func (s userService) GetUser(id int) (*UserResponse, error) {
 	if err != nil {
 		logs.Error(err)
 
-		UserResponse := UserResponse{
-			massege: "0",
-		}
+		UserResponse := UserResponse{}
 
 		if err == gorm.ErrRecordNotFound {
 			logs.Error(err)
@@ -102,7 +98,7 @@ func (s userService) GetUser(id int) (*UserResponse, error) {
 	}
 
 	UserResponse := UserResponse{
-		massege:      "1",
+		Message:      "1",
 		ID:           user.ID,
 		Email:        user.Email,
 		Username:     user.Username,
@@ -214,14 +210,14 @@ func (s userService) UpdateUserInfo(UserUpdateInfoRequest UserUpdateInfoRequest)
 	if err != nil {
 		logs.Error(err)
 		userResponse := UserResponse{
-			massege: "0",
+			Message: "0",
 		}
 
 		return &userResponse, errs.NewBadRequestError("invalid user id")
 	}
 
 	UserResponse := UserResponse{
-		massege:      "1",
+		Message:      "1",
 		ID:           userResponse.ID,
 		Email:        userResponse.Email,
 		Username:     userResponse.Username,
@@ -261,6 +257,7 @@ func (s userService) UpdateUserPassword(UserUpdatePasswordRequest UserUpdatePass
 	}
 
 	UserResponse := UserResponse{
+		Message:      "1",
 		ID:           userResponse.ID,
 		Email:        userResponse.Email,
 		Username:     userResponse.Username,
@@ -291,6 +288,7 @@ func (s userService) UpdateUserEmail(UserUpdateEmailRequest UserUpdateEmailReque
 	}
 
 	UserResponse := UserResponse{
+		Message:      "1",
 		ID:           userResponse.ID,
 		Email:        userResponse.Email,
 		Username:     userResponse.Username,
@@ -322,6 +320,7 @@ func (s userService) UpdateUserUsername(UserUpdateUsernameRequest UserUpdateUser
 	}
 
 	UserResponse := UserResponse{
+		Message:      "1",
 		ID:           userResponse.ID,
 		Email:        userResponse.Email,
 		Username:     userResponse.Username,
@@ -347,6 +346,7 @@ func (s userService) UpdateUserProfile(UserUpdateProfileRequest UserUpdateProfil
 	}
 
 	UserResponse := UserResponse{
+		Message:      "1",
 		ID:           userResponse.ID,
 		Email:        userResponse.Email,
 		Username:     userResponse.Username,
@@ -365,4 +365,19 @@ func (s userService) DeleteUser(id int) (int, error) {
 		return 0, err
 	}
 	return 1, nil
+}
+
+func (s userService) CheckToken(token string) (bool, error) {
+	if token == "" {
+		logs.Error("token is empty")
+		return false, errs.NewBadRequestError("token is empty")
+	}
+
+	// Check if the token is valid
+	_, err := security.NewBcryptHasher(os.Getenv("SECRET_KEY")).ValidateToken(token)
+	if err != nil {
+		logs.Error("invalid token")
+		return false, errs.NewBadRequestError("invalid token")
+	}
+	return true, nil
 }
